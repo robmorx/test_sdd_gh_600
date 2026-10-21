@@ -8,6 +8,17 @@
 
 **Input**: User description: "I want to build DevLog CLI, a console tool to save development notes in SQLite. It allows creating, listing, searching by tags, and exporting notes to Markdown. It does not need authentication or a complex graphical interface."
 
+## Clarifications
+
+### Session 2026-10-21
+
+- Q: Where on the user's machine should the tool keep the SQLite database file that holds the notes? (FR-003) → A: Option A — one single fixed file under the user's home directory (`~/.devlog/notes.db`), the same store no matter which folder the command runs from; the path can be overridden with the `DEVLOG_DB_PATH` environment variable for isolated use and for the test suite.
+- Q: Should tag matching be exact or support partial substring matches, and must a result contain all requested tags or is any of them enough? (FR-010) → A: Exact matching against the normalised tag value, with AND semantics — a note is returned only when it carries every requested tag. Partial matching and OR-matching are out of scope for v1. (Decided during planning — `research.md` R2.)
+- Q: Is the scope limited to the four capabilities indicated in the input, or does it also include editing and deleting already created notes? (FR-012) → A: v1 is limited to create, list, search by tags, and export; editing and deleting notes are out of scope and require an explicit scope expansion. (Decided during planning — `research.md` R3.)
+- Q: What exit codes must the tool use to distinguish success, absence of results, and error? (FR-021) → A: `0` success, `1` operational error, `2` usage or validation error, `3` no results. (`research.md` R5.)
+- Q: Where is the exported Markdown file written when the user does not choose a path? (FR-014) → A: The default destination is `./devlog-notes.md` in the current directory; `--output/-o` selects another path. (`research.md` R4.)
+- Q: In what format is the note listing rendered? (FR-008) → A: One note per line as `#<id>  <date>  <tags>  <title>`, newest first, plain text with no table or pagination. (`research.md` R13.)
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Save a development note (Priority: P1)
@@ -93,25 +104,25 @@ As a developer who wants to share their knowledge base with the team or archive 
 
 - **FR-001**: The system MUST allow the user to create a note with a mandatory title, optional content, and zero or more tags.
 - **FR-002**: The system MUST assign each note a unique identifier, its creation date and time, and MUST preserve them throughout the life of the note.
-- **FR-003**: The system MUST persist notes in a local data store and MUST resolve the location and lifecycle of that store — [NEEDS CLARIFICATION: what exact path should the database file live under (e.g., a fixed path under the user's home directory or a file in the current directory), and is it confirmed that the tool never deletes or resets an existing store without explicit user approval at that moment?]
+- **FR-003**: The system MUST persist notes in a single local SQLite store located at `~/.devlog/notes.db` under the user's home directory, MUST allow that path to be overridden through the `DEVLOG_DB_PATH` environment variable, and MUST create the store and its schema automatically and additively on first use, without ever deleting, resetting, or recreating an existing store.
 - **FR-004**: The system MUST preserve note data between executions: closing the tool or restarting the computer must not alter saved notes.
 - **FR-005**: The system MUST list the notes saved by the user.
 - **FR-006**: The listing MUST display, at a minimum, the title, creation date, and tags of each note.
 - **FR-007**: The listing MUST order notes from newest to oldest.
-- **FR-008**: The listing MUST run without requiring any filter and MUST explicitly indicate when no saved notes exist.
+- **FR-008**: The listing MUST run without requiring any filter, MUST explicitly indicate when no saved notes exist, and MUST render one note per line as `#<id>  <date>  <tags>  <title>`, ordered from newest to oldest.
 - **FR-009**: The system MUST search for notes based on one or more tags specified by the user.
-- **FR-010**: The search scope MUST [NEEDS CLARIFICATION: should tag matching be exact or support partial substring matches, and when multiple tags are specified, must the result require all of them (AND) or is matching any of them sufficient (OR)?]
+- **FR-010**: The search scope MUST match tags exactly against the normalised tag value (trimmed and lowercased), and when several tags are specified the result MUST require the note to carry every one of them (AND). Partial substring matching and OR-matching are out of scope for v1.
 - **FR-011**: The search result MUST display the title, date, and tags of each matching note and MUST clearly distinguish the case with no matches.
-- **FR-012**: The system MUST export saved notes to a Markdown file — scope of existing note management MUST [NEEDS CLARIFICATION: is the scope limited to the four capabilities indicated in the input (create, list, search by tags, and export), or does it also include editing and deleting already created notes?]
+- **FR-012**: The system MUST export saved notes to a Markdown file. The scope of existing note management is limited to the four capabilities indicated in the input (create, list, search by tags, and export); editing and deleting already created notes are out of scope for v1 and require an explicit scope expansion.
 - **FR-013**: The export MUST include, for each note, its title, creation date, tags, and content in a readable Markdown format.
-- **FR-014**: The export MUST offer the user the ability to choose the destination file path and MUST report the operation result.
-- **FR-015**: The system MUST NOT overwrite an existing export file without explicit user confirmation at that moment.
+- **FR-014**: The export MUST offer the user the ability to choose the destination file path (defaulting to `./devlog-notes.md` in the current directory) and MUST report the operation result.
+- **FR-015**: The system MUST NOT overwrite an existing export file without explicit user confirmation at that moment; an explicit `--force` flag counts as that confirmation, and in a non-interactive session without it the tool MUST refuse and leave the existing file untouched.
 - **FR-016**: The system MUST validate that a note title is not empty and does not consist solely of spaces, and MUST report the error without saving anything.
 - **FR-017**: The system MUST normalize tags (trim spaces and unify case) and MUST NOT store the same tag twice within the same note.
 - **FR-018**: The system MUST preserve note content intact, including line breaks and special characters, and MUST render it safely in the export.
 - **FR-019**: The system MUST NOT perform destructive operations on the data store (deletion, reset, or schema recreation) automatically or implicitly: any such operation requires explicit user approval at that moment.
 - **FR-020**: The system MUST display understandable error messages, without technical traces, indicating what failed and what action the user must take.
-- **FR-021**: The system MUST communicate the result of each operation via an exit code distinguishing between successful execution, absence of results, and error.
+- **FR-021**: The system MUST communicate the result of each operation via an exit code distinguishing between successful execution (`0`), absence of results (`3`), and error (`1` for operational failures, `2` for usage and validation failures).
 - **FR-022**: The system MUST NOT require authentication, user accounts, or credentials of any kind, and MUST run entirely in the terminal without a graphical interface.
 - **FR-023**: The system MUST run completely locally, without depending on remote services or network connection.
 - **FR-024**: Each tool capability (create, list, search, and export) MUST have automated tests covering both the success path and error paths, and the tests MUST NOT depend on external services or the network.
@@ -141,11 +152,11 @@ As a developer who wants to share their knowledge base with the team or archive 
 ## Assumptions
 
 - **Single local actor**: The tool is used by a single person on their own machine; there are no simultaneous users or need to share the same note store between people.
-- **Local storage**: The input description indicates SQLite as the storage engine; it is kept as a product restriction. The specific path of the file is pending confirmation (see FR-003).
+- **Local storage**: The input description indicates SQLite as the storage engine; it is kept as a product restriction. The store is a single file at `~/.devlog/notes.db`, and the path can be overridden with the `DEVLOG_DB_PATH` environment variable (see FR-003).
 - **No authentication**: By explicit indication from the input, there will be no accounts, passwords, sessions, or any identity mechanism.
 - **Terminal-only interface**: There will be no graphical interface, web dashboard, desktop integration, or editor integration, as indicated in the input.
 - **Out-of-scope functionality for v1**: Editing and deleting existing notes, free-text search within content, additional categories (e.g., `bug`, `command`, `idea`), attaching files or images, cloud synchronization, export formats other than Markdown, and any form of automatic sharing or publishing. Their incorporation will require an explicit scope expansion (Constitution Principle V).
-- **Search scope**: Search is defined around tags; exact vs. partial match details and combining multiple tags are pending confirmation (see FR-010).
+- **Search scope**: Search is defined around tags, with exact matching against the normalised tag and AND semantics when several tags are given (see FR-010).
 - **Tags**: A model of free tags without hierarchies or colors is assumed, without a predefined vocabulary restricting what the user can write.
 - **Date format**: Dates are displayed to the user in a readable local format with year, month, day, hour, and minutes.
 - **Interface language**: The tool communicates with the user in Spanish, consistent with the project's working language.

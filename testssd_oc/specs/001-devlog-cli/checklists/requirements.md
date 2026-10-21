@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -39,12 +39,13 @@
   Given/When/Then scenarios, 10 edge cases), *Requirements* (25 functional requirements, 3 key
   entities), *Success Criteria* (10 measurable outcomes), *Assumptions* (14 documented defaults,
   including an explicit out-of-scope list for v1).
-- **No [NEEDS CLARIFICATION] markers remain — FAILING**: 3 markers are open, in FR-003 (database
-  file location and lifecycle), FR-010 (tag matching semantics), and FR-012 (whether editing and
-  deleting notes are in scope). Questions Q1-Q3 are presented to the user and the spec will be
-  updated with the answers.
+- **No [NEEDS CLARIFICATION] markers remain — PASSING**: the 3 markers that were open in FR-003
+  (database file location and lifecycle), FR-010 (tag matching semantics), and FR-012 (whether
+  editing and deleting notes are in scope) were resolved on 2026-10-21 and are recorded in the
+  Clarifications section of the spec. The store location was confirmed by the user as a single
+  fixed file under the user's home directory.
 - **Requirements are testable and unambiguous**: all 25 requirements use MUST/MUST NOT and name a
-  verifiable outcome; the only ambiguity is confined to the 3 flagged requirements above.
+  verifiable outcome; no requirement carries an open clarification marker.
 - **Success criteria are measurable**: SC-001..SC-010 include counts (500 notes, 100% of notes
   shown, 0 destructive operations), timings (under 1 minute, under 3 seconds, under 5 minutes),
   and rates (95% of executions, 100% of capabilities tested).
@@ -66,7 +67,8 @@
   failure.
 - **All functional requirements have clear acceptance criteria**: each FR states a verifiable
   behaviour, and the acceptance scenarios plus edge cases cover them; FR-003, FR-010 and FR-012
-  remain explicitly flagged until Q1-Q3 are answered.
+  were closed on 2026-10-21 and their decisions are reflected in the acceptance scenarios, the
+  edge cases, and the Clarifications section.
 - **User scenarios cover primary flows**: one story per capability named in the input — create
   (P1), list (P2), search by tag (P3), export to Markdown (P4) — each independently testable and
   each delivering value on its own.
