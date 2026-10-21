@@ -229,14 +229,21 @@ required format: Decision / Rationale / Alternatives considered.
 
 ### R14 — Dependency set and justification (Constitution Principle IV)
 
-- **Decision**: Runtime dependency: `typer` (pinned `>=0.12,<1.0`), which transitively
-  installs `click`, `typing-extensions`, `shellingham`, and `rich`. Development
-  dependency: `pytest` (pinned `>=8,<9`), which transitively installs `pluggy`,
-  `iniconfig`, and `packaging`. Everything else comes from the standard library:
-  `sqlite3` for storage, `datetime` for timestamps, `pathlib` for paths, `unicodedata`-free
-  plain string handling for tag normalisation. Explicitly **not** used: ORM or query
-  builders, HTTP clients, migration frameworks, date/time libraries, logging frameworks,
-  and packaging tools beyond `uv`/`venv`.
+- **Decision**: Runtime dependency: `typer` (pinned `typer==0.27.3`), which transitively
+  installs `annotated-doc` 0.0.5, `shellingham` 1.5.4 and `rich` 15.0.0 (which in turn
+  brings `markdown-it-py` 4.2.0, `mdurl` 0.1.2 and `pygments` 2.21.0). Development
+  dependency: `pytest` (pinned `pytest==8.4.2`), which transitively installs
+  `iniconfig` 2.3.1, `packaging` 26.3, `pluggy` 1.7.0 and `pygments` 2.21.0.
+  Everything else comes from the standard library: `sqlite3` for storage, `datetime`
+  for timestamps, `pathlib` for paths, `tempfile` for the atomic write, and plain
+  string handling for tag normalisation. Explicitly **not** used: ORM or query
+  builders, HTTP clients, migration frameworks, date/time libraries, logging
+  frameworks, and packaging tools beyond `uv`/`venv`.
+  *Update of 2026-10-21 (during implementation):* the set originally assumed
+  `click` and `typing-extensions` would come with `typer`. The installed
+  `typer 0.27.3` no longer depends on `click` (it ships its own command layer) and
+  `typing-extensions` is not needed on Python 3.11+, so the real tree is the one
+  listed above. `uv.lock` records every resolved version.
 - **Rationale**: Typer provides typed commands, generated help, and a testable runner in
   one dependency, which is the smallest surface that satisfies "a console tool" without
   hand-rolling argument parsing. `sqlite3` is already in the standard library, so no
@@ -244,9 +251,10 @@ required format: Decision / Rationale / Alternatives considered.
   option per Principle IV.
 - **Alternatives considered**: (a) `argparse` only — rejected, it duplicates what Typer
   provides with far more boilerplate and weaker test ergonomics; (b) `click` directly —
-  rejected, Typer is the layer the user asked for and it wraps click; (c) SQLAlchemy —
-  rejected, an ORM is disproportionate for three tables and adds a major dependency;
-  (d) Alembic — rejected, a single additive schema does not need a migration framework.
+  rejected, Typer is the layer the user asked for and already includes what it needs;
+  (c) SQLAlchemy — rejected, an ORM is disproportionate for three tables and adds a
+  major dependency; (d) Alembic — rejected, a single additive schema does not need a
+  migration framework.
 
 ### R15 — Toolchain bootstrap
 

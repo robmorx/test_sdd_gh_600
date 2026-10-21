@@ -205,7 +205,9 @@ Options:
 2. If the destination does not exist, the file is created.
 3. If the destination **does** exist, the tool asks:
    `El archivo ya existe: <ruta>. ¿Quieres sobrescribirlo? [s/N]` and waits for an
-   answer. Only an explicit yes proceeds.
+   answer. `s`, `si`, `sí`, `y` and `yes` mean yes; anything else (including the end of
+   the input) means no, and the file is left untouched with exit code `1` and the
+   message `No se sobrescribió el archivo.`
 4. With `--force`, the file is replaced without asking.
 5. In a non-interactive session (standard input is not a terminal) without `--force`, the
    tool refuses: `El archivo ya existe y no se puede pedir confirmación. Usa --force o

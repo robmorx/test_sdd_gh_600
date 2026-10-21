@@ -76,8 +76,10 @@ echo "hola"
 ````
 ```
 
-The body inside the fence is still byte-for-byte identical; only the fence is added, and
-only when strictly necessary.
+The body text inside the fence is still byte-for-byte identical; only the fence is
+added, and only when strictly necessary. The wrapper adds a single trailing newline
+before the closing fence when the body does not already end with one, because a closing
+fence must sit on its own line.
 
 ### 3.2 Title escaping (the only other transformation)
 
@@ -85,8 +87,12 @@ The note title is escaped so that it can never break the document structure. The
 characters escaped with a backslash are:
 
 ```text
-\  `  *  _  { } [ ] ( ) # + - . ! | < >
+\  `  *  _  [  ]  #  <  >  !  |
 ```
+
+Additionally, when the title **starts** with `-`, `+` or `.`, that first character is
+escaped as well, because at the beginning of a line those characters would start a
+Markdown list.
 
 Escaping is applied only to the title, because the title is inserted into a heading
 where it would otherwise be interpreted as Markdown syntax. The body is never escaped
@@ -157,5 +163,5 @@ write leaves no partial file behind.
 |---|---|
 | All notes are present (SC-006) | Count the `## #` headings; compare with the store's note count. |
 | Title, date, tags, and content are present (FR-013) | Assert the presence of each expected field per section. |
-| Content is not corrupted (SC-006) | Extract each body and compare it byte-for-byte with the stored body. |
+| Content is not corrupted (SC-006) | Extract each body and compare it byte-for-byte with the stored body (stripping the fence lines when a fence was added). |
 | Readability of lists and line breaks (US4 scenario 3) | Assert the body section contains the original line structure. |
