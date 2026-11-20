@@ -8,8 +8,9 @@ jobs:
   review:
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write
       contents: read
+      pull-requests: write
+      models: read
 
     steps:
       - name: Checkout del código
@@ -28,5 +29,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_TOKEN: ${{ github.token }}
         run: python .github/scripts/agent_review.py

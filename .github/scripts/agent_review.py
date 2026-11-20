@@ -4,9 +4,12 @@ Variables de entorno esperadas:
   - GH_TOKEN:      GITHUB_TOKEN de GitHub Actions.
   - REPOSITORY:    github.repository (ej: "usuario/proyecto").
   - PR_NUMBER:     github.event.pull_request.number.
-  - AI_API_KEY:    Clave de la API del proveedor de IA (secreto; no imprimirla).
-  - AI_BASE_URL:   Opcional; endpoint OpenAI-compatible. Por defecto api.openai.com.
-  - AI_MODEL:      Opcional; modelo a usar. Por defecto gpt-4o-mini.
+  - AI_TOKEN:      Token de la IA: GITHUB_TOKEN del workflow (requiere permiso
+                   `models: read`). No se usan secretos.
+  - AI_BASE_URL:   Opcional; endpoint OpenAI-compatible. Por defecto el de
+                   GitHub Models (si falla, cambia según el catálogo actual).
+  - AI_MODEL:      Opcional; modelo a usar. Por defecto openai/gpt-4.1
+                   (el catálogo de modelos cambia).
 """
 
 import os
@@ -17,8 +20,10 @@ MAX_FILES = 30
 MAX_DIFF_CHARS = 30000
 TIMEOUT = 60
 
-AI_BASE_URL = os.environ.get("AI_BASE_URL", "https://api.openai.com/v1/chat/completions")
-AI_MODEL = os.environ.get("AI_MODEL", "gpt-4o-mini")
+AI_BASE_URL = os.environ.get(
+    "AI_BASE_URL", "https://models.inference.ai.azure.com/v1/chat/completions"
+)
+AI_MODEL = os.environ.get("AI_MODEL", "openai/gpt-4.1")
 
 SYSTEM_PROMPT = (
     "Eres un revisor de código experto que revisa Pull Requests de forma automática.\n"
@@ -128,17 +133,18 @@ def run():
         print("Faltan variables de entorno necesarias: GH_TOKEN, REPOSITORY, PR_NUMBER")
         return
 
-    if not os.environ.get("AI_API_KEY"):
+    ai_key = os.environ.get("AI_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    if not ai_key:
         body = (
-            "🤖 **Revisión automática de IA:** no se pudo revisar — falta configurar el secreto "
-            "`AI_API_KEY` en el repositorio."
+            "🤖 **Revisión automática de IA:** no se pudo revisar — no hay token de IA "
+            "configurado (`AI_TOKEN` = GITHUB_TOKEN con permiso `models: read`)."
         )
         gh_post_comment(token, repo, pr_number, body)
         return
 
     pr_info = get_pr_info(token, repo, pr_number)
     diff = get_diff(token, repo, pr_number)
-    review = call_ai(diff, pr_info, os.environ["AI_API_KEY"])
+    review = call_ai(diff, pr_info, ai_key)
     gh_post_comment(token, repo, pr_number, f"🤖 **Revisión automática de IA:**\n\n{review}")
 
 
