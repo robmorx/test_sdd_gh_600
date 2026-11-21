@@ -1,8 +1,0 @@
-{
-  "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "lint": "turbo lint"
-  },
-  "workspaces": ["apps/*", "packages/*"]
-}
