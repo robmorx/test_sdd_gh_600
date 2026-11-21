@@ -11,6 +11,9 @@ __pycache__/
 build/
 dist/
 
+.opencode/
+tests/
+
 # Datos locales del usuario
 *.db
 *.db-wal
